@@ -1,46 +1,29 @@
 from peewee import *
+import report_racing as rr
 
 db = SqliteDatabase('report.db')
 
-class Person(Model):
+report = rr.sort_report(rr.error_code_and_zero(rr.build_report('data')), 'asc')
+
+
+class ReportBase(Model):
+    abbreviation = CharField()
+    place = CharField()
     name = CharField()
-    birthday = DateField()
-    is_relative = BooleanField()
+    team = CharField()
+    time = DateTimeField()
 
     class Meta:
-        database = db  # модель будет использовать базу данных 'people.db'
+        database = db  # model use base - 'report.db'
 
 
+ReportBase.create_table([ReportBase])
 
-class Pet(Model):
-    owner = ForeignKeyField(Person, related_name='pets')
-    name = CharField()
-    animal_type = CharField()
-
-    class Meta:
-        database = db  # модель будет использовать базу данных 'people.db'
-
-
-
-Person.create_table()
-Pet.create_table()
-
-
-from datetime import date
-uncle_bob = Person(name='Bob', birthday=date(1960, 1, 15), is_relative=True)
-uncle_bob.save()  # cохраним Боба в базе данных
-
-
-
-grandma = Person.create(name='Grandma', birthday=date(1935, 3, 1), is_relative=True)
-herb = Person.create(name='Herb', birthday=date(1950, 5, 5), is_relative=False)
-
-
-grandma.name = 'Grandma L.'
-grandma.save()  # обновим запись grandma
-
-
-bob_kitty = Pet.create(owner=uncle_bob, name='Kitty', animal_type='cat')
-herb_fido = Pet.create(owner=herb, name='Fido', animal_type='dog')
-herb_mittens = Pet.create(owner=herb, name='Mittens', animal_type='cat')
-herb_mittens_jr = Pet.create(owner=herb, name='Mittens Jr', animal_type='cat')
+for item in report.items():
+    add_report = ReportBase.get_or_create(
+        abbreviation=item[0],
+        place=item[1]['place'],
+        name=item[1]['name'],
+        team=item[1]['team'],
+        time=item[1]['time']
+    )
